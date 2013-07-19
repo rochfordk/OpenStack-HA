@@ -1,6 +1,6 @@
 Vagrant.require_plugin('vagrant-hostmanager')
 
-domain = 'coe.dell.com'
+domain = 'mydomain.com'
 
 # setup the cluster
 nodes = [

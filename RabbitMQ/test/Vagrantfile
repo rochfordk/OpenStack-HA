@@ -2,17 +2,15 @@ Vagrant.require_plugin('vagrant-hostmanager')
 
 domain = 'coe.dell.com'
 
-# setup the client / test node
-
 # setup the cluster
 nodes = [
-  { :hostname => 'node1', :ip => '10.125.0.11', :box => 'ubuntu1204-chef', :ram => 512 },
-  { :hostname => 'node2', :ip => '10.125.0.12', :box => 'ubuntu1204-chef', :ram => 512 },
-  { :hostname => 'node3', :ip => '10.125.0.13', :box => 'ubuntu1204-chef', :ram => 512 }
+  { :hostname => 'node1', :ip => '10.125.0.11', :box => 'ubuntu1204-chef'},
+  { :hostname => 'node2', :ip => '10.125.0.12', :box => 'ubuntu1204-chef'},
+  { :hostname => 'node3', :ip => '10.125.0.13', :box => 'ubuntu1204-chef'}
 ]
 
 Vagrant.configure("2") do |config|
-
+  # configure hostmanager
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
   config.hostmanager.ignore_private_ip = false
@@ -20,28 +18,13 @@ Vagrant.configure("2") do |config|
   
   nodes.each do |node|
     config.vm.define node[:hostname] do |node_config|
+      # configure the box, hostname and networking 
       node_config.vm.box = node[:box]
       node_config.vm.hostname = node[:hostname] + '.' + domain
       node_config.vm.network :private_network, ip: node[:ip]
-      #node_config.hostmanager.aliases = %w(example-box.localdomain example-box-alias)
       node_config.hostmanager.aliases = node[:hostname]
-
-      #memory = node[:ram] ? node[:ram] : 256;
-      #node_config.vm.customize [
-      #  'modifyvm', :id,
-      #  '--name', node[:hostname],
-      #  '--memory', memory.to_s
-      #]
-      
-      
-      # rabbitMQ need to be able to resolve host in the test cluster
-      # quick and dirty /etc/hosts (change to hostsfile cookbook if needed
-      #nodes.each do |node|
-      #   #sedString = 'sudo sed -i "$ a\\' + node[:ip] + '.' + node[:hostname] + '.' + domain+' '+ node[:hostname] + ' vagrant.vm vagrant" /etc/hosts'
-         #node_config.vm.provision :shell, :inline => 'sudo sed -i "$ a\\' + node[:ip] + '.' + node[:hostname] + '.' + domain+' '+ node[:hostname] + ' vagrant.vm vagrant" /etc/hosts'
-      #   node_config.vm.provision :shell, :inline => "sed -ie 's/%admin ALL=(ALL) ALL/%admin ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers"
-      #end
-        
+          
+      # use the Chef provisioner to install RabbitMQ    
       node_config.vm.provision :chef_solo do |chef|
        chef.add_recipe "rabbitmq"
        chef.add_recipe "rabbitmq::mgmt_console"

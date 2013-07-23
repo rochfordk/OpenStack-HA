@@ -2,7 +2,7 @@ Vagrant.require_plugin('vagrant-hostmanager')
 
 domain = 'mydomain.com'
 
-# setup the cluster
+# Define the cluster
 nodes = [
   { :hostname => 'node1', :ip => '10.125.0.11', :box => 'ubuntu1204-chef'},
   { :hostname => 'node2', :ip => '10.125.0.12', :box => 'ubuntu1204-chef'},
@@ -10,11 +10,6 @@ nodes = [
 ]
 
 Vagrant.configure("2") do |config|
-  # configure hostmanager
-  config.hostmanager.enabled = true
-  config.hostmanager.manage_host = true
-  config.hostmanager.ignore_private_ip = false
-  config.hostmanager.include_offline = true
   
   nodes.each do |node|
     config.vm.define node[:hostname] do |node_config|
@@ -22,8 +17,14 @@ Vagrant.configure("2") do |config|
       node_config.vm.box = node[:box]
       node_config.vm.hostname = node[:hostname] + '.' + domain
       node_config.vm.network :private_network, ip: node[:ip]
+
+	  # configure hostmanager
+      node_config.hostmanager.enabled = true
+      node_config.hostmanager.manage_host = true
+      node_config.hostmanager.ignore_private_ip = false
+      node_config.hostmanager.include_offline = true
       node_config.hostmanager.aliases = node[:hostname]
-          
+
       # use the Chef provisioner to install RabbitMQ    
       node_config.vm.provision :chef_solo do |chef|
        chef.add_recipe "rabbitmq"
